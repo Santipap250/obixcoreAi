@@ -57,6 +57,18 @@ npm run deploy
 npm install -g vercel
 vercel
 ```
+-------
+# อัปเดตระบบของ Termux และติดตั้ง Git พร้อม GitHub CLI
+pkg update && pkg upgrade -y
+pkg install git gh -y
+
+# ล็อกอินเข้าสู่บัญชี GitHub ของคุณ (ทำตามขั้นตอนบนหน้าจอ)
+gh auth login
+
+# ตั้งค่าชื่อและอีเมล (ใช้ข้อมูลเดียวกับบัญชี GitHub)
+git config --global user.name "ชื่อผู้ใช้ของคุณ"
+git config --global user.email "อีเมลของคุณ@example.com
+----------
 
 > **Note:** `next.config.mjs` sets `images.unoptimized: true` intentionally — this is a static-export deploy target (no Node image server). If you move to Vercel/Node hosting, you can remove that flag to enable on-demand image optimization.
 
