@@ -61,7 +61,9 @@ export function findMatches(
 
   const scored: DoctorFinding[] = candidates.map((p) => {
     const docTokens = new Set(tokenize(buildSearchableText(p)));
-    const matched = [...queryTokens].filter((t) => docTokens.has(t));
+    const matched = Array.from(queryTokens).filter(
+  (t) => docTokens.has(t)
+);
     const confidence = matched.length / Math.max(queryTokens.size, 1);
     return {
       problemId: p.id,
