@@ -1,0 +1,199 @@
+[
+  {
+    "id": "prob-hf-oscillation",
+    "symptom": "โดรนสั่นความถี่สูง (Buzz / High-freq oscillation)",
+    "category": "flight",
+    "severity": "high",
+    "description": "โดรนสั่นตลอดเวลาหรือสั่นเมื่อ throttle เพิ่ม มักได้ยินเสียงหวีด motor ผิดปกติ",
+    "causes": [
+      "D term สูงเกินไป",
+      "RPM filter ไม่ได้เปิด หรือ Bidirectional DSHOT ไม่ทำงาน",
+      "Gyro noise สูง จากการ mount โดยไม่มี dampening",
+      "Props unbalanced หรือ bent"
+    ],
+    "steps": [
+      {
+        "order": 1,
+        "title": "ตรวจสอบ Blackbox หรือดู motor noise",
+        "description": "ใส่ Betaflight แล้วไปที่ Motors tab สังเกต motor debug ว่าสั่นไหวขนาดไหน ถ้าไม่มี blackbox ให้สังเกตมือจับ",
+        "action": null,
+        "warning": null
+      },
+      {
+        "order": 2,
+        "title": "ลด D term ก่อน",
+        "description": "ลด d_roll และ d_pitch ลง 5 แล้วบินทดสอบ ทำซ้ำจนสั่นหาย",
+        "action": "set d_roll = [ค่าปัจจุบัน - 5]\nset d_pitch = [ค่าปัจจุบัน - 5]\nsave",
+        "warning": "ถ้าลด D มากเกินไปโดรนจะ overshoot หลัง flip/roll"
+      },
+      {
+        "order": 3,
+        "title": "เช็ก RPM Filter",
+        "description": "เข้า Betaflight Configuration → เปิด MOTOR_STOP ปิด, ตรวจว่า DSHOT protocol ถูกต้อง, เปิด Bidirectional DSHOT ใน ESC Telemetry",
+        "action": "set dshot_bidir = ON\nset rpm_filter_harmonics = 3\nsave",
+        "warning": null
+      },
+      {
+        "order": 4,
+        "title": "ตรวจ props และ motor mount",
+        "description": "ถอด props ออกทีละอัน หมุนดูว่า bent ไหม ตรวจ motor screw ว่า loose ไหม ตรวจ stack mount ว่า soft mount อยู่ไหม",
+        "action": null,
+        "warning": "Props bent แม้เล็กน้อยทำให้ vibration มากผิดปกติได้"
+      }
+    ],
+    "relatedPresetIds": ["preset-5inch-freestyle-001"],
+    "tags": ["pid", "d-term", "oscillation", "rpm-filter", "props"]
+  },
+  {
+    "id": "prob-propwash",
+    "symptom": "Propwash หลัง throttle drop (โดรนสั่นเมื่อ throttle กลับขึ้นมา)",
+    "category": "flight",
+    "severity": "medium",
+    "description": "หลังจาก dive ลงแล้ว throttle กลับขึ้น โดรนสั่นหรือ wobble ชัดเจน ทำให้วิดีโอสั่น",
+    "causes": [
+      "I term accumulation ระหว่าง zero throttle",
+      "Props ผ่านอากาศที่ตัวเองสร้าง (vortex ring)",
+      "D term ไม่พอ",
+      "iterm_relax ไม่ได้ตั้งค่า"
+    ],
+    "steps": [
+      {
+        "order": 1,
+        "title": "เปิด iterm_relax",
+        "description": "ตั้งค่า iterm_relax เป็น RP (Roll + Pitch) เพื่อหยุดการสะสม I term ตอน throttle ต่ำ",
+        "action": "set iterm_relax = RP\nset iterm_relax_type = SETPOINT\nset iterm_relax_cutoff = 15\nsave",
+        "warning": null
+      },
+      {
+        "order": 2,
+        "title": "เพิ่ม D term เล็กน้อย",
+        "description": "ลอง เพิ่ม d_roll และ d_pitch ทีละ 3-5 D term ช่วย damp การสั่นหลัง throttle กลับ",
+        "action": "set d_roll = [ค่าปัจจุบัน + 3]\nset d_pitch = [ค่าปัจจุบัน + 3]\nsave",
+        "warning": "อย่าเพิ่ม D มากเกินจน motor ร้อน — ตรวจ motor temp หลังบิน 1 แบต"
+      },
+      {
+        "order": 3,
+        "title": "ปรับ Transition (ถ้ามี)",
+        "description": "ใน BF 4.4+ ลอง set throttle_boost = 5-10 ช่วย punch motor ออก vortex ได้เร็วขึ้น",
+        "action": "set throttle_boost = 7\nsave",
+        "warning": null
+      }
+    ],
+    "relatedPresetIds": ["preset-5inch-freestyle-001"],
+    "tags": ["propwash", "i-term", "throttle", "freestyle"]
+  },
+  {
+    "id": "prob-toilet-bowl",
+    "symptom": "Toilet Bowl / Yaw drift (โดรนหมุนหรือดริฟต์ yaw เอง)",
+    "category": "flight",
+    "severity": "medium",
+    "description": "โดรนค่อยๆ หมุนรอบ yaw axis โดยไม่ได้ให้คำสั่ง หรือ stick กลับมา center แล้วยังหมุนต่อ",
+    "causes": [
+      "Yaw P สูงเกินไป",
+      "Motor ไม่ทรงตัว (bent shaft หรือ bearing เสีย)",
+      "Frame ไม่สมดุล ติด prop guard ผิดข้าง",
+      "Yaw I ต่ำเกินไป"
+    ],
+    "steps": [
+      {
+        "order": 1,
+        "title": "ลด Yaw P ก่อน",
+        "description": "ลด p_yaw ลง 5 แล้วทดสอบ hover นิ่งๆ ดูว่า drift ลดลงไหม",
+        "action": "set p_yaw = [ค่าปัจจุบัน - 5]\nsave",
+        "warning": null
+      },
+      {
+        "order": 2,
+        "title": "ตรวจ motor spin ทีละตัว",
+        "description": "เปิด Betaflight Motor tab ปิน props ออก spin motor ทีละตัว ฟังเสียงและดู shaft ว่าสั่นหรือตี",
+        "action": null,
+        "warning": "ระวัง! อย่า spin motor ขณะที่ props ติดอยู่"
+      },
+      {
+        "order": 3,
+        "title": "ตรวจ frame สมดุล",
+        "description": "วาง frame บนพื้นเรียบ ตรวจว่าขาไม่บิด ตรวจ arm ว่าตรงไหม ถ้า frame บิดจะทำให้ยากต่อการ tune",
+        "action": null,
+        "warning": null
+      }
+    ],
+    "relatedPresetIds": [],
+    "tags": ["yaw", "toilet-bowl", "drift", "motor"]
+  },
+  {
+    "id": "prob-video-noise",
+    "symptom": "วิดีโอมีเส้น / สั่น / มีสัญญาณรบกวน (Video noise / Lines)",
+    "category": "video",
+    "severity": "medium",
+    "description": "FPV feed มีเส้นแนวนอน สัญญาณกระพริบ หรือมี static มาก โดยเฉพาะเมื่อ throttle เพิ่ม",
+    "causes": [
+      "VTX และ Camera ไม่ได้ใส่ capacitor กรอง noise",
+      "FC power supply กรองไม่ดีพอ",
+      "สาย video วิ่งใกล้สาย power",
+      "Ground loop ระหว่าง VTX และ Camera"
+    ],
+    "steps": [
+      {
+        "order": 1,
+        "title": "เพิ่ม Capacitor ที่ battery pad",
+        "description": "บัดกรี capacitor 1000-2200μF 35V ที่ battery pad ของ FC หรือ PDB ขั้ว + ต่อขั้ว +, ขั้ว - ต่อขั้ว -",
+        "action": null,
+        "warning": "⚠️ ระวังขั้วกลับ Capacitor ขั้วกลับจะระเบิดได้"
+      },
+      {
+        "order": 2,
+        "title": "เพิ่ม LC Filter หรือ Video filter",
+        "description": "ใส่ LC filter (1206 inductor + 470μF cap) ระหว่าง FC กับ VTX ช่วยกรอง high-frequency noise จาก ESC",
+        "action": null,
+        "warning": null
+      },
+      {
+        "order": 3,
+        "title": "จัด routing สาย",
+        "description": "แยกสาย video / signal ออกห่างจากสาย power และ ESC motor wires ให้มากที่สุด",
+        "action": null,
+        "warning": null
+      }
+    ],
+    "relatedPresetIds": [],
+    "tags": ["video", "vtx", "capacitor", "noise", "fpv-feed"]
+  },
+  {
+    "id": "prob-motor-hot",
+    "symptom": "Motor ร้อนผิดปกติหลังบิน",
+    "category": "mechanical",
+    "severity": "high",
+    "description": "Motor ร้อนมากหลังบิน 1 แบต จนแตะไม่ได้หรือกลิ่นไหม้ เกินกว่า 60°C ถือว่าร้อนเกิน",
+    "causes": [
+      "D term สูงเกินไป ทำให้ motor oscillate ตลอดเวลา",
+      "Props ใหญ่หรือ pitch สูงเกินไปสำหรับ KV นั้น",
+      "Current draw สูงเกิน motor rating",
+      "Motor bearing เสีย"
+    ],
+    "steps": [
+      {
+        "order": 1,
+        "title": "ลด D term ทันที",
+        "description": "D term ที่สูงเกินทำให้ motor oscillate ตลอดซึ่งทำให้ร้อนมาก ลด d_roll d_pitch ลง 5-8",
+        "action": "set d_roll = [ค่าปัจจุบัน - 6]\nset d_pitch = [ค่าปัจจุบัน - 6]\nsave",
+        "warning": "บินทดสอบหลังแก้ไขและตรวจ motor temp ทันทีที่ลงจอด"
+      },
+      {
+        "order": 2,
+        "title": "ตรวจ motor rating vs props",
+        "description": "ดู motor datasheet ว่า max thrust กับ prop ที่ใช้เป็นเท่าไหร่ ถ้าบิน 5\" 4S ด้วย 1750KV ปกติ ถ้า 1750KV บิน 6S ร้อนมาก",
+        "action": null,
+        "warning": "⚠️ Motor ที่ร้อนจนไหม้จะเสียถาวร"
+      },
+      {
+        "order": 3,
+        "title": "ลองเปลี่ยน prop pitch ต่ำลง",
+        "description": "เปลี่ยนจาก props pitch สูง (เช่น 5148) มาเป็น pitch ต่ำกว่า (เช่น 5045) จะลด current draw",
+        "action": null,
+        "warning": null
+      }
+    ],
+    "relatedPresetIds": [],
+    "tags": ["motor", "heat", "d-term", "props", "current"]
+  }
+]
