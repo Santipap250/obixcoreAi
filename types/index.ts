@@ -83,6 +83,8 @@ export interface WizardResult {
   cliCommands: string[];
   warnings: string[];
   tips: string[];
+  /** 0–100 confidence score based on how typical the input combination is */
+  confidence: number;
 }
 
 export interface CalculatorResult {
